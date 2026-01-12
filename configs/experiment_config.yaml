@@ -1,0 +1,77 @@
+# Experiment Configuration
+# ========================
+
+# Model settings
+models:
+  primary: 
+    provider: "gemini"
+    name: "gemini-1.5-flash"
+    temperature: 0.0
+    max_tokens: 1024
+  
+  secondary:
+    provider: "gemini"
+    name: "gemini-1.5-pro"
+    temperature: 0.0
+    max_tokens: 1024
+  
+  backup:
+    provider: "github"
+    name: "gpt-4o-mini"
+    temperature: 0.0
+    max_tokens: 1024
+
+# Dataset settings
+datasets:
+  truthfulqa:
+    path: "data/raw/TruthfulQA.csv"
+    sample_size: null  # null = use all
+    categories: null   # null = use all categories
+  
+  hotpotqa:
+    path: "data/raw/hotpot_dev_distractor_v1.json"
+    sample_size: 500   # Start with subset for development
+    difficulty: null   # null = all difficulties
+
+# Perturbation settings
+perturbations:
+  counterfactual:
+    enabled: true
+    num_samples: 100
+  
+  injected_falsehood:
+    enabled: true
+    num_samples: 100
+    falsehood_ratio: 0.3  # 30% of context contains false info
+  
+  contradictory: 
+    enabled: true
+    num_samples: 100
+  
+  misconception:
+    enabled: true
+    # Uses TruthfulQA directly
+
+# Evaluation settings
+evaluation:
+  metrics: 
+    - "exact_match"
+    - "f1_score"
+    - "truthfulness"
+    - "consistency"
+  
+  self_verification:
+    enabled: true
+    prompts:
+      - "Are you sure about this answer?"
+      - "Please verify your reasoning step by step."
+      - "Check if your answer contradicts any given information."
+
+# Output settings
+output:
+  results_dir: "data/results"
+  save_raw_responses: true
+  save_reasoning_chains: true
+
+# Reproducibility
+random_seed: 42

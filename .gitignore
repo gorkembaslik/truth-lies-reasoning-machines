@@ -218,10 +218,12 @@ data/results/*.csv
 
 # Google Cloud credentials
 *.json
-!configs/*.json
+configs/*.json
 
 # OS
 .DS_Store
 Thumbs.db
 
 project_structure.txt
+
+configs/project-34542e1e-bdb4-4102-85e-6c1692f60507.json

@@ -1,4 +1,4 @@
-"""Google Gemini API client via Vertex AI."""
+"""Google Gemini API client via Vertex AI or Google AI Studio."""
 
 import os
 from typing import Optional
@@ -7,10 +7,14 @@ from .base_llm import BaseLLM, LLMResponse
 
 
 class GeminiClient(BaseLLM):
-    """Client for Google's Gemini models via Vertex AI. 
+    """Client for Google's Gemini models. 
     
-    This client supports both the google-generativeai library (simpler)
-    and the Vertex AI SDK (for production use with service accounts).
+    Supports two authentication methods:
+    1. Google AI Studio (simple API key) - set GOOGLE_API_KEY
+    2. Vertex AI (service account) - set GOOGLE_CLOUD_PROJECT + GOOGLE_APPLICATION_CREDENTIALS
+    
+    The client automatically detects which method to use based on available
+    environment variables.
     
     Example:
         >>> client = GeminiClient(model_name="gemini-1.5-flash")
@@ -19,16 +23,20 @@ class GeminiClient(BaseLLM):
         Paris
     
     Environment Variables:
-        GOOGLE_API_KEY: API key for google-generativeai library.
-        GOOGLE_CLOUD_PROJECT: Project ID for Vertex AI.
-        GOOGLE_APPLICATION_CREDENTIALS: Path to service account JSON. 
+        GOOGLE_API_KEY: API key for Google AI Studio (simpler method).
+        GOOGLE_CLOUD_PROJECT: Project ID for Vertex AI. 
+        GOOGLE_CLOUD_LOCATION: Region for Vertex AI (default: us-central1).
+        GOOGLE_APPLICATION_CREDENTIALS:  Path to service account JSON for Vertex AI.
     """
     
     # Available Gemini models
     AVAILABLE_MODELS = [
         "gemini-1.5-flash",
-        "gemini-1.5-flash-8b",
+        "gemini-1.5-flash-001",
+        "gemini-1.5-flash-002",
         "gemini-1.5-pro",
+        "gemini-1.5-pro-001",
+        "gemini-1.5-pro-002",
         "gemini-1.0-pro",
     ]
     
@@ -36,24 +44,50 @@ class GeminiClient(BaseLLM):
         self,
         model_name: str = "gemini-1.5-flash",
         temperature: float = 0.0,
-        max_retries:  int = 3,
+        max_retries: int = 3,
         retry_delay: float = 1.0,
-        use_vertex_ai: bool = False,
+        use_vertex_ai: Optional[bool] = None,
     ):
         """Initialize the Gemini client.
         
         Args:
             model_name: Name of the Gemini model to use.
             temperature: Sampling temperature (0.0 = deterministic).
-            max_retries: Maximum number of retry attempts. 
+            max_retries: Maximum number of retry attempts.
             retry_delay: Delay between retries in seconds.
-            use_vertex_ai: If True, use Vertex AI SDK; else use google-generativeai.
+            use_vertex_ai: Force Vertex AI (True) or AI Studio (False).
+                          If None, auto-detects based on environment variables.
         """
         super().__init__(model_name, temperature, max_retries, retry_delay)
-        self.use_vertex_ai = use_vertex_ai
-        self._client = None
+        
+        # Auto-detect which API to use
+        if use_vertex_ai is None:
+            self.use_vertex_ai = self._should_use_vertex_ai()
+        else:
+            self.use_vertex_ai = use_vertex_ai
+            
         self._model = None
         self._initialize_client()
+    
+    def _should_use_vertex_ai(self) -> bool:
+        """Determine whether to use Vertex AI based on environment variables."""
+        has_vertex_ai = (
+            os.getenv("GOOGLE_CLOUD_PROJECT") is not None and
+            os.getenv("GOOGLE_APPLICATION_CREDENTIALS") is not None
+        )
+        has_api_key = os.getenv("GOOGLE_API_KEY") is not None
+        
+        # Prefer Vertex AI if configured (uses cloud credits)
+        if has_vertex_ai: 
+            return True
+        elif has_api_key:
+            return False
+        else:
+            raise ValueError(
+                "No Google credentials found. Please set either:\n"
+                "  - GOOGLE_API_KEY for Google AI Studio, or\n"
+                "  - GOOGLE_CLOUD_PROJECT + GOOGLE_APPLICATION_CREDENTIALS for Vertex AI"
+            )
     
     def _initialize_client(self) -> None:
         """Initialize the appropriate Google AI client."""
@@ -63,7 +97,7 @@ class GeminiClient(BaseLLM):
             self._initialize_genai()
     
     def _initialize_genai(self) -> None:
-        """Initialize using google-generativeai library."""
+        """Initialize using google-generativeai library (AI Studio)."""
         try:
             import google.generativeai as genai
         except ImportError:
@@ -81,7 +115,8 @@ class GeminiClient(BaseLLM):
         
         genai.configure(api_key=api_key)
         self._model = genai.GenerativeModel(self.model_name)
-        self._genai = genai
+        self._generation_module = "genai"
+        print(f"Initialized Gemini via Google AI Studio (model: {self.model_name})")
     
     def _initialize_vertex_ai(self) -> None:
         """Initialize using Vertex AI SDK."""
@@ -96,14 +131,39 @@ class GeminiClient(BaseLLM):
         
         project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
         location = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
+        credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
         
         if not project_id: 
             raise ValueError(
                 "GOOGLE_CLOUD_PROJECT environment variable is required for Vertex AI."
             )
         
+        # Set credentials path for Google Cloud SDK
+        if credentials_path:
+            # Resolve relative paths
+            if not os.path.isabs(credentials_path):
+                # Try relative to current directory and project root
+                if os.path.exists(credentials_path):
+                    credentials_path = os.path.abspath(credentials_path)
+                else:
+                    # Try from project root
+                    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                    alt_path = os.path.join(project_root, credentials_path.lstrip('./'))
+                    if os.path.exists(alt_path):
+                        credentials_path = alt_path
+                    else:
+                        raise FileNotFoundError(
+                            f"Credentials file not found:  {credentials_path}\n"
+                            f"Also tried: {alt_path}"
+                        )
+            
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
+        
+        # Initialize Vertex AI
         vertexai.init(project=project_id, location=location)
         self._model = GenerativeModel(self.model_name)
+        self._generation_module = "vertexai"
+        print(f"Initialized Gemini via Vertex AI (project: {project_id}, model: {self.model_name})")
     
     def _call_api(self, prompt: str, max_tokens: int) -> LLMResponse:
         """Make the API call to Gemini.
@@ -113,7 +173,7 @@ class GeminiClient(BaseLLM):
             max_tokens: Maximum tokens in the response.
             
         Returns:
-            LLMResponse object.
+            LLMResponse object. 
         """
         generation_config = {
             "temperature": self.temperature,
@@ -142,8 +202,16 @@ class GeminiClient(BaseLLM):
         if response.candidates:
             finish_reason = str(response.candidates[0].finish_reason)
         
+        # Extract text safely
+        try:
+            text = response.text
+        except ValueError:
+            # Handle blocked responses
+            text = "[Response blocked by safety filters]"
+            finish_reason = "SAFETY"
+        
         return LLMResponse(
-            text=response.text,
+            text=text,
             model=self.model_name,
             prompt_tokens=prompt_tokens,
             completion_tokens=completion_tokens,
@@ -160,7 +228,7 @@ class GeminiClient(BaseLLM):
     ) -> LLMResponse:
         """Generate a response with a system prompt.
         
-        Gemini handles system prompts differently - we prepend them to the user prompt.
+        Gemini handles system prompts by prepending them to the user prompt.
         
         Args:
             system_prompt: Instructions for the model's behavior.
@@ -184,11 +252,15 @@ Response:"""
             text: The text to count tokens for.
             
         Returns:
-            Number of tokens. 
+            Number of tokens.
         """
-        if self.use_vertex_ai:
-            response = self._model.count_tokens(text)
-            return response.total_tokens
-        else:
-            response = self._model.count_tokens(text)
-            return response.total_tokens
+        response = self._model.count_tokens(text)
+        return response.total_tokens
+    
+    def get_api_type(self) -> str:
+        """Get the API type being used.
+        
+        Returns:
+            'vertex_ai' or 'ai_studio'
+        """
+        return "vertex_ai" if self.use_vertex_ai else "ai_studio"

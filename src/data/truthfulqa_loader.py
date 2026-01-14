@@ -4,7 +4,7 @@ import pandas as pd
 from pathlib import Path
 from typing import Optional
 
-from base_dataset import BaseDataset, QAExample, DistortionType
+from .base_dataset import BaseDataset, QAExample, DistortionType
 
 class TruthfulQADataset(BaseDataset):
     """Loader for the TruthfulQA dataset. 
@@ -33,7 +33,7 @@ class TruthfulQADataset(BaseDataset):
         """Initialize the TruthfulQA dataset. 
         
         Args:
-            data_path: Path to the TruthfulQA. csv file.
+            data_path: Path to the TruthfulQA.csv file.
         """
         self.raw_df:  Optional[pd.DataFrame] = None
         super().__init__(data_path)
@@ -43,7 +43,7 @@ class TruthfulQADataset(BaseDataset):
         path = Path(self.data_path)
         if not path.exists():
             raise FileNotFoundError(
-                f"TruthfulQA dataset not found at {path}. "
+                f"TruthfulQA dataset not found at {path}."
                 f"Please download it from https://github.com/sylinrl/TruthfulQA"
             )
         
@@ -51,7 +51,7 @@ class TruthfulQADataset(BaseDataset):
         
         for idx, row in self.raw_df.iterrows():
             # Parse incorrect answers (semicolon-separated in the CSV)
-            incorrect_answers = self._parse_answers(row. get("Incorrect Answers", ""))
+            incorrect_answers = self._parse_answers(row.get("Incorrect Answers", ""))
             
             # Get the best incorrect answer if available
             best_incorrect = row.get("Best Incorrect Answer", "")
@@ -61,11 +61,11 @@ class TruthfulQADataset(BaseDataset):
             example = QAExample(
                 id=f"truthfulqa_{idx}",
                 question=row["Question"],
-                correct_answer=row. get("Best Answer", row.get("Correct Answers", "").split(";")[0]),
+                correct_answer=row.get("Best Answer", row.get("Correct Answers", "").split(";")[0]),
                 incorrect_answers=incorrect_answers if incorrect_answers else None,
                 context=None,  # TruthfulQA doesn't have context
                 supporting_facts=None,
-                category=row. get("Category", None),
+                category=row.get("Category", None),
                 difficulty=None,  # TruthfulQA doesn't have difficulty levels
                 distortion_type=DistortionType.MISCONCEPTION,  # All TruthfulQA questions test misconceptions
                 metadata={
@@ -120,7 +120,7 @@ class TruthfulQADataset(BaseDataset):
         
         summary = self.raw_df["Category"].value_counts().reset_index()
         summary.columns = ["Category", "Count"]
-        summary["Percentage"] = (summary["Count"] / len(self. raw_df) * 100).round(2)
+        summary["Percentage"] = (summary["Count"] / len(self.raw_df) * 100).round(2)
         return summary
     
     def get_by_category(self, category: str) -> list[QAExample]: 

@@ -4,7 +4,7 @@ import os
 import requests
 from typing import Optional
 
-from . base_llm import BaseLLM, LLMResponse
+from .base_llm import BaseLLM, LLMResponse
 
 
 class GitHubModelsClient(BaseLLM):
@@ -23,7 +23,7 @@ class GitHubModelsClient(BaseLLM):
         GITHUB_TOKEN: Your GitHub personal access token.
     """
     
-    API_BASE_URL = "https://models.inference.ai. azure.com"
+    API_BASE_URL = "https://models.inference.ai.azure.com"
     
     # Available models on GitHub Models
     AVAILABLE_MODELS = [
@@ -65,7 +65,7 @@ class GitHubModelsClient(BaseLLM):
         token = os.getenv("GITHUB_TOKEN")
         if not token:
             raise ValueError(
-                "GITHUB_TOKEN environment variable is required. "
+                "GITHUB_TOKEN environment variable is required."
                 "Create a token at https://github.com/settings/tokens"
             )
         return token
@@ -114,11 +114,11 @@ class GitHubModelsClient(BaseLLM):
         
         return LLMResponse(
             text=choice["message"]["content"],
-            model=data. get("model", self.model_name),
+            model=data.get("model", self.model_name),
             prompt_tokens=usage.get("prompt_tokens"),
-            completion_tokens=usage. get("completion_tokens"),
+            completion_tokens=usage.get("completion_tokens"),
             total_tokens=usage.get("total_tokens"),
-            finish_reason=choice. get("finish_reason"),
+            finish_reason=choice.get("finish_reason"),
             raw_response=data,
         )
     

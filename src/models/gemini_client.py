@@ -3,7 +3,7 @@
 import os
 from typing import Optional
 
-from . base_llm import BaseLLM, LLMResponse
+from .base_llm import BaseLLM, LLMResponse
 
 
 class GeminiClient(BaseLLM):
@@ -68,14 +68,14 @@ class GeminiClient(BaseLLM):
             import google.generativeai as genai
         except ImportError:
             raise ImportError(
-                "google-generativeai is required.  "
+                "google-generativeai is required."
                 "Install it with: pip install google-generativeai"
             )
         
         api_key = os.getenv("GOOGLE_API_KEY")
         if not api_key: 
             raise ValueError(
-                "GOOGLE_API_KEY environment variable is required.  "
+                "GOOGLE_API_KEY environment variable is required."
                 "Get your API key from https://makersuite.google.com/app/apikey"
             )
         
@@ -90,7 +90,7 @@ class GeminiClient(BaseLLM):
             from vertexai.generative_models import GenerativeModel
         except ImportError:
             raise ImportError(
-                "google-cloud-aiplatform is required for Vertex AI. "
+                "google-cloud-aiplatform is required for Vertex AI."
                 "Install it with: pip install google-cloud-aiplatform"
             )
         
@@ -175,7 +175,7 @@ class GeminiClient(BaseLLM):
 User Query: {user_prompt}
 
 Response:"""
-        return self. generate(combined_prompt, max_tokens)
+        return self.generate(combined_prompt, max_tokens)
     
     def count_tokens(self, text: str) -> int:
         """Count the number of tokens in a text string.
@@ -186,7 +186,7 @@ Response:"""
         Returns:
             Number of tokens. 
         """
-        if self. use_vertex_ai:
+        if self.use_vertex_ai:
             response = self._model.count_tokens(text)
             return response.total_tokens
         else:

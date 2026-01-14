@@ -85,7 +85,7 @@ BASELINE_QA_WITH_CONTEXT = PromptTemplate(
 Question: {question}
 
 Answer:""",
-    prompt_type=PromptType. BASELINE,
+    prompt_type=PromptType.BASELINE,
     description="Question-answer with supporting context.",
 )
 
@@ -207,7 +207,7 @@ Please critically evaluate your reasoning:
 4. Could there be an alternative interpretation? 
 
 If you find any issues, correct them and provide your revised answer:""",
-    prompt_type=PromptType. SELF_VERIFICATION,
+    prompt_type=PromptType.SELF_VERIFICATION,
     description="Deep verification of reasoning chain.",
 )
 
@@ -238,7 +238,7 @@ Question: {question}
 Important: If you notice contradictions in the context, point them out before answering. 
 
 Answer:""",
-    prompt_type=PromptType. ADVERSARIAL,
+    prompt_type=PromptType.ADVERSARIAL,
     description="Context with deliberately contradictory information.",
 )
 

@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Optional
 
-from base_dataset import BaseDataset, QAExample, DistortionType
+from .base_dataset import BaseDataset, QAExample, DistortionType
 
 
 class HotpotQADataset(BaseDataset):
@@ -26,7 +26,7 @@ class HotpotQADataset(BaseDataset):
         >>> example = dataset[0]
         >>> print(example.question)
         >>> print(example.context)
-        >>> print(example. supporting_facts)
+        >>> print(example.supporting_facts)
     
     Attributes:
         data_path: Path to the HotpotQA JSON file. 
@@ -40,7 +40,7 @@ class HotpotQADataset(BaseDataset):
             data_path: Path to the HotpotQA JSON file.
             max_examples: Maximum number of examples to load (for development).
         """
-        self. max_examples = max_examples
+        self.max_examples = max_examples
         self.raw_data: Optional[list] = None
         super().__init__(data_path)
     
@@ -49,7 +49,7 @@ class HotpotQADataset(BaseDataset):
         path = Path(self.data_path)
         if not path.exists():
             raise FileNotFoundError(
-                f"HotpotQA dataset not found at {path}. "
+                f"HotpotQA dataset not found at {path}."
                 f"Please download it from https://hotpotqa.github.io/"
             )
         
@@ -63,7 +63,7 @@ class HotpotQADataset(BaseDataset):
         
         for item in data_to_process: 
             # Format context paragraphs
-            context = self._format_context(item. get("context", []))
+            context = self._format_context(item.get("context", []))
             
             # Format supporting facts
             supporting_facts = self._format_supporting_facts(
@@ -74,7 +74,7 @@ class HotpotQADataset(BaseDataset):
             example = QAExample(
                 id=item["_id"],
                 question=item["question"],
-                correct_answer=item. get("answer", ""),
+                correct_answer=item.get("answer", ""),
                 incorrect_answers=None,
                 context=context,
                 supporting_facts=supporting_facts,
@@ -103,7 +103,7 @@ class HotpotQADataset(BaseDataset):
         for title, sentences in context_list:
             paragraph = " ".join(sentences)
             formatted_parts.append(f"[{title}]\n{paragraph}")
-        return "\n\n". join(formatted_parts)
+        return "\n\n".join(formatted_parts)
     
     def _format_supporting_facts(
         self, 
@@ -192,7 +192,7 @@ class HotpotQADataset(BaseDataset):
         """
         multi_hop = []
         for ex in self._data:
-            if ex.metadata and "raw_supporting_facts" in ex. metadata:
+            if ex.metadata and "raw_supporting_facts" in ex.metadata:
                 # Count unique titles in supporting facts
                 titles = set(title for title, _ in ex.metadata["raw_supporting_facts"])
                 if len(titles) >= min_hops:

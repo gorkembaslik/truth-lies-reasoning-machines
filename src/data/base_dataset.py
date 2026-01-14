@@ -97,7 +97,7 @@ class BaseDataset(ABC):
         import random
         if seed is not None:
             random.seed(seed)
-        return random. sample(self._data, min(n, len(self._data)))
+        return random.sample(self._data, min(n, len(self._data)))
     
     def filter_by_category(self, category: str) -> list[QAExample]: 
         """Filter examples by category. 

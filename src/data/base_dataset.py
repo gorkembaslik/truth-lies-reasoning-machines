@@ -52,7 +52,7 @@ class BaseDataset(ABC):
     Example: 
         >>> dataset = TruthfulQADataset("data/raw/TruthfulQA.csv")
         >>> print(len(dataset))
-        817
+        790
         >>> example = dataset[0]
         >>> print(example.question)
     """

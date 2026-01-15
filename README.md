@@ -108,12 +108,12 @@ from src.evaluation import MetricsCalculator
 dataset = TruthfulQADataset("data/raw/TruthfulQA.csv")
 
 # Initialize model
-llm = GeminiClient(model_name="gemini-1.5-flash")
+llm = GeminiClient(model_name="gemini-2.0-flash-lite-001")
 
 # Run evaluation
 calculator = MetricsCalculator()
 for example in dataset.sample(10, seed=42):
-    response = llm.generate(f"Question: {example. question}\nAnswer:")
+    response = llm.generate(f"Question: {example.question}\nAnswer:")
     calculator.add_result(
         example_id=example.id,
         prediction=response.text,
@@ -128,7 +128,7 @@ print(calculator.get_aggregate_metrics())
 
 ### TruthfulQA
 - **Purpose**: Measures if models mimic human falsehoods
-- **Size**: 817 questions across 38 categories
+- **Size**: 790 questions across 37 categories
 - **Use Case**: Testing susceptibility to misconceptions
 
 ### HotpotQA

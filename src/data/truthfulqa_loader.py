@@ -10,7 +10,7 @@ class TruthfulQADataset(BaseDataset):
     """Loader for the TruthfulQA dataset. 
     
     TruthfulQA is a benchmark designed to measure whether language models
-    mimic human falsehoods. It contains 817 questions across 38 categories.
+    mimic human falsehoods. It contains 790 questions across 37 categories.
     
     The dataset tests models on questions where humans often give false
     answers due to misconceptions, superstitions, or false beliefs.
@@ -18,7 +18,7 @@ class TruthfulQADataset(BaseDataset):
     Example:
         >>> dataset = TruthfulQADataset("data/raw/TruthfulQA.csv")
         >>> print(len(dataset))
-        817
+        790
         >>> example = dataset[0]
         >>> print(example.question)
         >>> print(example.correct_answer)

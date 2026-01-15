@@ -17,7 +17,7 @@ class GeminiClient(BaseLLM):
     environment variables.
     
     Example:
-        >>> client = GeminiClient(model_name="gemini-1.5-flash")
+        >>> client = GeminiClient(model_name="gemini-2.0-flash-lite-001")
         >>> response = client.generate("What is the capital of France?")
         >>> print(response.text)
         Paris
@@ -31,18 +31,18 @@ class GeminiClient(BaseLLM):
     
     # Available Gemini models
     AVAILABLE_MODELS = [
-        "gemini-1.5-flash",
-        "gemini-1.5-flash-001",
-        "gemini-1.5-flash-002",
-        "gemini-1.5-pro",
-        "gemini-1.5-pro-001",
-        "gemini-1.5-pro-002",
-        "gemini-1.0-pro",
+        "gemini-live-2.5-flash-native-audio",
+        "gemini-2.5-pro",
+        "gemini-2.5-flash",
+        "gemini-2.5-flash-lite",
+        "gemini-2.5-flash-image",
+        "gemini-2.0-flash-001",
+        "gemini-2.0-flash-lite-001",
     ]
     
     def __init__(
         self,
-        model_name: str = "gemini-1.5-flash",
+        model_name: str = "gemini-2.0-flash-lite-001",
         temperature: float = 0.0,
         max_retries: int = 3,
         retry_delay: float = 1.0,

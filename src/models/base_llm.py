@@ -37,7 +37,7 @@ class BaseLLM(ABC):
     from this class to ensure a consistent interface.
     
     Example:
-        >>> llm = GeminiClient(model_name="gemini-1.5-flash")
+        >>> llm = GeminiClient(model_name="gemini-2.0-flash-lite-001")
         >>> response = llm.generate("What is the capital of France?")
         >>> print(response.text)
     """

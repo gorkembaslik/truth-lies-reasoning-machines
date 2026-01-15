@@ -3,6 +3,9 @@
 import os
 from typing import Optional
 
+from google import genai
+from google.genai import types
+
 from .base_llm import BaseLLM, LLMResponse
 
 
@@ -97,38 +100,20 @@ class GeminiClient(BaseLLM):
             self._initialize_genai()
     
     def _initialize_genai(self) -> None:
-        """Initialize using google-generativeai library (AI Studio)."""
-        try:
-            import google.generativeai as genai
-        except ImportError:
-            raise ImportError(
-                "google-generativeai is required."
-                "Install it with: pip install google-generativeai"
-            )
-        
+        """Initialize using Google Gen AI SDK (AI Studio mode)."""
         api_key = os.getenv("GOOGLE_API_KEY")
         if not api_key: 
             raise ValueError(
                 "GOOGLE_API_KEY environment variable is required."
-                "Get your API key from https://makersuite.google.com/app/apikey"
+                "Get your API key from https://aistudio.google.com/app/apikey"
             )
         
-        genai.configure(api_key=api_key)
-        self._model = genai.GenerativeModel(self.model_name)
+        self._client = genai.Client(api_key=api_key)
         self._generation_module = "genai"
         print(f"Initialized Gemini via Google AI Studio (model: {self.model_name})")
     
     def _initialize_vertex_ai(self) -> None:
-        """Initialize using Vertex AI SDK."""
-        try:
-            import vertexai
-            from vertexai.generative_models import GenerativeModel
-        except ImportError:
-            raise ImportError(
-                "google-cloud-aiplatform is required for Vertex AI."
-                "Install it with: pip install google-cloud-aiplatform"
-            )
-        
+        """Initialize using Google Gen AI SDK (Vertex AI mode)."""
         project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
         location = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
         credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
@@ -159,9 +144,12 @@ class GeminiClient(BaseLLM):
             
             os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
         
-        # Initialize Vertex AI
-        vertexai.init(project=project_id, location=location)
-        self._model = GenerativeModel(self.model_name)
+        # Initialize Vertex AI client
+        self._client = genai.Client(
+            vertexai=True,
+            project=project_id,
+            location=location
+        )
         self._generation_module = "vertexai"
         print(f"Initialized Gemini via Vertex AI (project: {project_id}, model: {self.model_name})")
     
@@ -175,14 +163,13 @@ class GeminiClient(BaseLLM):
         Returns:
             LLMResponse object. 
         """
-        generation_config = {
-            "temperature": self.temperature,
-            "max_output_tokens": max_tokens,
-        }
-        
-        response = self._model.generate_content(
-            prompt,
-            generation_config=generation_config,
+        response = self._client.models.generate_content(
+            model=self.model_name,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=self.temperature,
+                max_output_tokens=max_tokens,
+            )
         )
         
         # Extract token counts if available
@@ -190,11 +177,11 @@ class GeminiClient(BaseLLM):
         completion_tokens = None
         total_tokens = None
         
-        if hasattr(response, "usage_metadata"):
+        if response.usage_metadata:
             usage = response.usage_metadata
-            prompt_tokens = getattr(usage, "prompt_token_count", None)
-            completion_tokens = getattr(usage, "candidates_token_count", None)
-            if prompt_tokens and completion_tokens:
+            prompt_tokens = usage.prompt_token_count
+            completion_tokens = usage.candidates_token_count
+            if prompt_tokens is not None and completion_tokens is not None:
                 total_tokens = prompt_tokens + completion_tokens
         
         # Get finish reason
@@ -254,7 +241,10 @@ Response:"""
         Returns:
             Number of tokens.
         """
-        response = self._model.count_tokens(text)
+        response = self._client.models.count_tokens(
+            model=self.model_name,
+            contents=text
+        )
         return response.total_tokens
     
     def get_api_type(self) -> str:

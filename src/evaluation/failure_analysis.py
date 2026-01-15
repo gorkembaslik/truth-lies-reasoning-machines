@@ -194,7 +194,7 @@ class FailureDetector:
         """
         # Extract quoted claims or specific numbers from prediction
         quotes = re.findall(r'"([^"]+)"', prediction)
-        numbers = re.findall(r'\b(\d+(? : ,\d{3})*(?:\.\d+)?)\b', prediction)
+        numbers = re.findall(r'\b(\d+(?: ,\d{3})*(?:\.\d+)?)\b', prediction)
         
         context_lower = context.lower()
         

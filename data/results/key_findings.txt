@@ -1,0 +1,32 @@
+
+1. CHAIN-OF-THOUGHT PARADOX
+   - CoT prompting DECREASES performance by 53-74%
+   - Likely due to error propagation in reasoning chains
+   - Implication: More reasoning ≠ better answers
+
+2. VULNERABILITY TO CONTRADICTIONS
+   - Contradictory context causes 74% performance drop (most severe)
+   - 53% of failures are "contradiction blindness"
+   - Models fail to detect conflicting information
+
+3. BELIEF PERSISTENCE
+   - Without context:  78.7% adopt suggested wrong answers
+   - With context: 24.7% adopt wrong answers (3x better)
+   - Factual context provides crucial anchoring
+
+4. FALSEHOOD RESILIENCE (Surprising)
+   - Injected falsehoods had minimal impact (0.1% drop)
+   - Model appears to ignore obviously false statements
+   - May rely more on parametric knowledge than context
+
+5. SELF-VERIFICATION:  MIXED RESULTS
+   - Context-based verification:  +19.7% improvement (EFFECTIVE)
+   - Simple "Are you sure?" verification: -10.1% (HARMFUL)
+   - Generic verification can cause second-guessing of correct answers
+   - Targeted context re-reading is the only effective strategy
+
+6. PRACTICAL RECOMMENDATIONS
+   - Avoid CoT prompting for factual QA tasks
+   - Always provide factual context to reduce belief persistence
+   - Use context-based verification, not generic "are you sure?" prompts
+   - Be cautious of contradictory information in retrieved contexts

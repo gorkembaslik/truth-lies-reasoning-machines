@@ -5,6 +5,7 @@ pandas>=2.0.0
 numpy>=1.24.0
 
 # API Clients
+google-genai>=0.3.0
 google-cloud-aiplatform>=1.38.0
 google-generativeai>=0.3.0
 requests>=2.31.0
@@ -24,6 +25,7 @@ ipykernel>=6.25.0
 
 # Testing
 pytest>=7.4.0
+scipy>=1.17.0
 
 # Progress bars
 tqdm>=4.65.0
